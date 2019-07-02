@@ -1,8 +1,9 @@
 package com.kolendoanastasia.gameoflife;
 
 import javafx.application.Application;
-
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -13,8 +14,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-
 import java.util.Random;
+import javafx.scene.control.Slider;
 
 
 public class GameOfLifeGui extends Application{
@@ -54,6 +55,7 @@ public class GameOfLifeGui extends Application{
 
         gridPane.setAlignment(Pos.CENTER);
         gridPane.setPadding(new Insets(20));
+
         Label label6 = new Label("Press 'next generation' for next generation or 'exit' to end simulation");
         Button nextGenerationButton = new Button("next generation");
         Button exitButton = new Button("exit");
@@ -62,13 +64,56 @@ public class GameOfLifeGui extends Application{
         hbox.setAlignment(Pos.CENTER);
         hbox.setPadding(new Insets(20));
 
-        nextGenerationButton.setOnAction(event -> {
+        Slider slider = new Slider(0, 900, 100);
+        slider.setShowTickMarks(true);
+        slider.setShowTickLabels(true);
+        slider.setMajorTickUnit(10);
+        slider.setMinorTickCount(10);
+        slider.setBlockIncrement(10);
+        hbox.getChildren().add(slider);
+        final Number[] number = {0};
+        slider.valueProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                number[0] = newValue;
+            }
+        });
+
+        Runnable updater = () -> {
             life.evolve();
             for (Node child : gridPane.getChildren()) {
                 int i = GridPane.getColumnIndex(child);
                 int j = GridPane.getRowIndex(child);
                 String color = life.isAlive(j, i) ? "000000" : "FFFFFF";
                 child.setStyle("-fx-background-color: #" + color + ";");
+                nextGenerationButton.setText("Stop");
+                label4.setText(" ");
+                label6.setText("Press 'stop' to stop simulation or 'exit' to end it");
+            }
+        };
+        Runnable evaluator = () -> {
+            while (true) {
+                try {
+                    Thread.sleep(1000 - number[0].longValue());
+                } catch (InterruptedException ex) {
+                    return;
+                }
+
+                // UI update is run on the Application thread
+                Platform.runLater(updater);
+            }
+        };
+        Thread[] thread = {null};
+
+        nextGenerationButton.setOnAction(event -> {
+            if (thread[0] == null) {
+                Thread t = new Thread(evaluator);
+                //t.setDaemon(true);
+                t.start();
+                thread[0] = t;
+            } else {
+                thread[0].interrupt();
+                thread[0] = null;
             }
         });
 
