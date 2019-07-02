@@ -15,6 +15,8 @@ import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import javafx.scene.control.Slider;
 
 
@@ -71,13 +73,8 @@ public class GameOfLifeGui extends Application{
         slider.setMinorTickCount(10);
         slider.setBlockIncrement(10);
         hbox.getChildren().add(slider);
-        final Number[] number = {0};
-        slider.valueProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                number[0] = newValue;
-            }
-        });
+        AtomicInteger evolutionSpeed = new AtomicInteger(0);
+        slider.valueProperty().addListener((observable, oldValue, newValue) -> evolutionSpeed.set(newValue.intValue()));
 
         Runnable updater = () -> {
             life.evolve();
@@ -94,7 +91,7 @@ public class GameOfLifeGui extends Application{
         Runnable evaluator = () -> {
             while (true) {
                 try {
-                    Thread.sleep(1000 - number[0].longValue());
+                    Thread.sleep(1000 - evolutionSpeed.get());
                 } catch (InterruptedException ex) {
                     return;
                 }
@@ -108,7 +105,7 @@ public class GameOfLifeGui extends Application{
         nextGenerationButton.setOnAction(event -> {
             if (thread[0] == null) {
                 Thread t = new Thread(evaluator);
-                //t.setDaemon(true);
+                t.setDaemon(true);
                 t.start();
                 thread[0] = t;
             } else {
