@@ -59,4 +59,14 @@ public class Life {
     public int getNumberOfColumns() {
         return cells[0].length;
     }
+
+    public void resize(int numberOfRows, int numberOfColumns) {
+        boolean[][] newCells = new boolean[numberOfRows][numberOfColumns];
+        for (int i = 0; i < Math.min(cells.length, numberOfRows); i++) {
+            for (int j = 0; j < Math.min(cells[i].length, numberOfColumns); j++) {
+                newCells[i][j] = cells[i][j];
+            }
+        }
+        cells = newCells;
+    }
 }
