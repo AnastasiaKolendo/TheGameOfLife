@@ -10,10 +10,11 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -74,6 +75,12 @@ public class GameOfLifeGui extends Application{
         Button clearButton = new Button("Start again");
         HBox clearCells = new HBox(20, clearCellsLabel, clearButton);
 
+        Label labelExport = new Label("Press 'Export' to a file");
+        Button buttonExport = new Button("Export");
+        Label labelImport = new Label("Press 'Import' from a file");
+        Button buttonImport = new Button("Import");
+        HBox hBoxImportExport = new HBox(20, labelExport, buttonExport, labelImport, buttonImport);
+
         Slider slider = new Slider(0, 900, 5);
         slider.setShowTickMarks(true);
         slider.setShowTickLabels(true);
@@ -114,6 +121,74 @@ public class GameOfLifeGui extends Application{
         };
         Thread[] thread = {null};
 
+        buttonExport.setOnAction(event -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Open Resource File");
+            fileChooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("Text Files", "*.txt"));
+            File file = fileChooser.showSaveDialog(primaryStage);
+            if (file != null){
+                try {
+                    FileWriter fileWriter = new FileWriter(file);
+                    fileWriter.write(life.getNumberOfRows() + System.lineSeparator());
+                    fileWriter.write(life.getNumberOfColumns() + System.lineSeparator());
+                    for (int i = 0; i < life.getNumberOfRows(); i++) {
+                        for (int j = 0; j < life.getNumberOfColumns(); j++) {
+                            String str = Boolean.toString(life.isAlive(i, j));
+                            fileWriter.write(str + System.lineSeparator());
+                        }
+                    }
+                    fileWriter.close();
+                } catch (IOException ex) {
+                    a.setTitle("IOException");
+                    a.setAlertType(Alert.AlertType.ERROR);
+                    a.setContentText("IO Exception occurred");
+                    a.show();
+                }
+            }
+        });
+
+        buttonImport.setOnAction(event -> {
+            FileChooser fileChooser = new FileChooser();
+            FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("TXT files (*.txt)", "*.txt");
+            fileChooser.getExtensionFilters().add(extFilter);
+
+            File file = fileChooser.showOpenDialog(primaryStage);
+            if (file != null) {
+                try {
+                    BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+                    String stringLabel;
+                    int numberOfRowsRead = Integer.parseInt(bufferedReader.readLine());
+                    int numberOfColumnsRead = Integer.parseInt(bufferedReader.readLine());
+                    life.resize(numberOfRowsRead, numberOfColumnsRead);
+                    gridPane.getChildren().clear();
+                    for (int i = 0; i < numberOfRowsRead; i++) {
+                        for (int j = 0; j < numberOfColumnsRead; j++) {
+                            stringLabel = bufferedReader.readLine();
+                            boolean label = Boolean.parseBoolean(stringLabel);
+                            life.setAlive(i, j, label);
+                        }
+                    }
+                } catch (FileNotFoundException e) {
+                    a.setTitle("FileNotFoundException");
+                    a.setAlertType(Alert.AlertType.ERROR);
+                    a.setContentText("FileNotFoundException occurred");
+                    a.show();
+                } catch (IOException e) {
+                    a.setTitle("IOException");
+                    a.setAlertType(Alert.AlertType.ERROR);
+                    a.setContentText("IOException occurred");
+                    a.show();
+                } catch (Exception e){
+                    a.setTitle("Error");
+                    a.setAlertType(Alert.AlertType.ERROR);
+                    a.setContentText("An error occurred");
+                    a.show();
+                }
+            }
+            addCellLabels(life, gridPane);
+        });
+
         nextGenerationButton.setOnAction(event -> {
             if (thread[0] == null) {
                 Thread t = new Thread(evaluator);
@@ -136,7 +211,7 @@ public class GameOfLifeGui extends Application{
         });
 
         VBox vBoxFinal = new VBox(10, gridPane, hBoxStartExit,
-                slider, hBoxSpinner, clearCells);
+                slider, hBoxSpinner, clearCells, hBoxImportExport);
         vBoxFinal.setPadding(new Insets(10));
         Scene scene = new Scene(vBoxFinal, 600, 680);
         scene.setFill(Color.BLUE);
