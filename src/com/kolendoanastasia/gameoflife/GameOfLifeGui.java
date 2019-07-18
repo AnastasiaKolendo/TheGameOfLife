@@ -65,7 +65,7 @@ public class GameOfLifeGui extends Application{
         spinner2.valueProperty().addListener(resizeOnValueChange);
         HBox hBoxSpinner = new HBox(20, labelRows, spinner1, labelColumns, spinner2);
 
-        Label startExitLabel = new Label("Press 'start' for next generation or 'exit' to end simulation");
+        Label startExitLabel = new Label("Press 'start' for next generation or 'exit' to end it");
         Button nextGenerationButton = new Button("start");
         Button exitButton = new Button("exit");
         exitButton.setOnAction(e -> Platform.exit());
@@ -101,7 +101,7 @@ public class GameOfLifeGui extends Application{
                 child.setStyle("-fx-background-color: #" + color + ";");
             }
             nextGenerationButton.setText("Stop");
-            startExitLabel.setText("Press 'stop' to stop simulation or 'exit'");
+            startExitLabel.setText("Press 'stop' to stop simulation or 'exit' to end it ");
         };
 
         Runnable evaluator = () -> {
@@ -109,10 +109,7 @@ public class GameOfLifeGui extends Application{
                 try {
                     Thread.sleep(1000 - evolutionSpeed.get());
                 } catch (InterruptedException ex) {
-                    a.setTitle("InterruptedException");
-                    a.setAlertType(Alert.AlertType.ERROR);
-                    a.setContentText("InterruptedException occurred");
-                    a.show();
+                    return;
                 }
 
                 // UI update is run on the Application thread
