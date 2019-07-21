@@ -30,28 +30,28 @@ public class GameOfLifeGui extends Application{
         primaryStage.setTitle("The Game Of Life");
         primaryStage.show();
 
-        final int numberOfRows = 15;
-        final int numberOfColumns = 15;
+        final int initialNumberOfRows = 30;
+        final int initialNumberOfColumns = 45;
 
-        Life life = new Life(numberOfRows, numberOfColumns);
+        Life life = new Life(initialNumberOfRows, initialNumberOfColumns);
         createFirstGeneration(life);
 
         GridPane gridPane = new GridPane();
         addCellLabels(life, gridPane);
         gridPane.setPadding(new Insets(10));
-        gridPane.setMinSize(300, 450);
+        gridPane.setMinSize(300, 525);
         gridPane.setAlignment(Pos.CENTER);
 
-        Label labelRows = new Label("Select number of rows:");
-        Label labelColumns = new Label("Select number of columns:");
+        Label labelRows = new Label("Number of rows:");
+        Label labelColumns = new Label("Number of columns:");
         Spinner<Integer> spinner1 = new Spinner<>();
         Spinner<Integer> spinner2 = new Spinner<>();
         spinner1.setMaxWidth(75);
         spinner2.setMaxWidth(75);
         SpinnerValueFactory<Integer> valueFactoryRows =
-                new SpinnerValueFactory.IntegerSpinnerValueFactory(5, 20, numberOfRows);
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(5, 50, initialNumberOfRows);
         SpinnerValueFactory<Integer> valueFactoryColumns = new
-                SpinnerValueFactory.IntegerSpinnerValueFactory(5, 20, numberOfColumns);
+                SpinnerValueFactory.IntegerSpinnerValueFactory(5, 100, initialNumberOfColumns);
         spinner1.setValueFactory(valueFactoryRows);
         spinner2.setValueFactory(valueFactoryColumns);
         ChangeListener<Integer> resizeOnValueChange = (obs, oldValue, newValue) -> {
@@ -65,30 +65,24 @@ public class GameOfLifeGui extends Application{
         spinner2.valueProperty().addListener(resizeOnValueChange);
         HBox hBoxSpinner = new HBox(20, labelRows, spinner1, labelColumns, spinner2);
 
-        Label startExitLabel = new Label("Press 'start' for next generation or 'exit' to end it");
-        Button nextGenerationButton = new Button("start");
-        Button exitButton = new Button("exit");
-        exitButton.setOnAction(e -> Platform.exit());
-        HBox hBoxStartExit = new HBox(20, startExitLabel, nextGenerationButton, exitButton);
+        Button nextGenerationButton = new Button("Start");
 
-        Label clearCellsLabel = new Label("Click the button to start again the simulation");
         Button clearButton = new Button("Reset");
-        HBox clearCells = new HBox(20, clearCellsLabel, clearButton);
 
-        Label labelExport = new Label("Press 'Export' to a file");
         Button buttonExport = new Button("Export");
-        Label labelImport = new Label("Press 'Import' from a file");
         Button buttonImport = new Button("Import");
-        HBox hBoxImportExport = new HBox(20, labelExport, buttonExport, labelImport, buttonImport);
+        HBox hBoxImportExport = new HBox(20, clearButton, buttonExport, buttonImport);
 
         Slider slider = new Slider(0, 900, 5);
         slider.setShowTickMarks(true);
         slider.setShowTickLabels(true);
         slider.setMajorTickUnit(100);
         slider.setMinorTickCount(4);
-        slider.setMaxWidth(500);
+        slider.setMinWidth(400);
         AtomicInteger evolutionSpeed = new AtomicInteger(0);
         slider.valueProperty().addListener((observable, oldValue, newValue) -> evolutionSpeed.set(newValue.intValue()));
+
+        HBox hbox = new HBox(20,nextGenerationButton, slider);
 
         Alert a = new Alert(Alert.AlertType.NONE);
 
@@ -100,8 +94,6 @@ public class GameOfLifeGui extends Application{
                 String color = life.isAlive(j, i) ? "000000" : "FFFFFF";
                 child.setStyle("-fx-background-color: #" + color + ";");
             }
-            nextGenerationButton.setText("Stop");
-            startExitLabel.setText("Press 'stop' to stop simulation or 'exit' to end it ");
         };
 
         Runnable evaluator = () -> {
@@ -192,12 +184,12 @@ public class GameOfLifeGui extends Application{
                 t.setDaemon(true);
                 t.start();
                 thread[0] = t;
+                nextGenerationButton.setText("Stop");
             } else {
                 thread[0].interrupt();
                 thread[0] = null;
+                nextGenerationButton.setText("Start");
             }
-            nextGenerationButton.setText("Start");
-            startExitLabel.setText("Press 'start' to start simulation or 'exit' to end it");
         });
 
         clearButton.setOnAction((ActionEvent event) -> {
@@ -206,8 +198,7 @@ public class GameOfLifeGui extends Application{
             addCellLabels(life, gridPane);
         });
 
-        VBox vBoxFinal = new VBox(10, gridPane, hBoxStartExit,
-                slider, hBoxSpinner, clearCells, hBoxImportExport);
+        VBox vBoxFinal = new VBox(10, gridPane, hbox, hBoxSpinner, hBoxImportExport);
         vBoxFinal.setPadding(new Insets(10));
         Scene scene = new Scene(vBoxFinal, 600, 680);
         scene.setFill(Color.BLUE);
@@ -220,8 +211,10 @@ public class GameOfLifeGui extends Application{
         for (int i = 0; i < life.getNumberOfColumns(); i++) {
             for (int j = 0; j < life.getNumberOfRows(); j++) {
                 Label label = new Label();
-                label.setMinWidth(20);
-                label.setMinHeight(20);
+                label.setMinWidth(10);
+                label.setMaxWidth(10);
+                label.setMinHeight(10);
+                label.setMaxHeight(10);
                 String color = life.isAlive(j, i) ? "000000" : "FFFFFF";
                 label.setStyle("-fx-background-color: #" + color + ";");
                 gridPane.add(label, i, j);
