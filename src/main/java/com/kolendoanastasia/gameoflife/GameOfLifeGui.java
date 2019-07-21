@@ -72,7 +72,7 @@ public class GameOfLifeGui extends Application{
         HBox hBoxStartExit = new HBox(20, startExitLabel, nextGenerationButton, exitButton);
 
         Label clearCellsLabel = new Label("Click the button to start again the simulation");
-        Button clearButton = new Button("Start again");
+        Button clearButton = new Button("Reset");
         HBox clearCells = new HBox(20, clearCellsLabel, clearButton);
 
         Label labelExport = new Label("Press 'Export' to a file");
@@ -201,8 +201,7 @@ public class GameOfLifeGui extends Application{
         });
 
         clearButton.setOnAction((ActionEvent event) -> {
-            life.resize(numberOfRows, numberOfColumns);
-            gridPane.getChildren().clear();
+            life.resize(life.getNumberOfRows(), life.getNumberOfColumns());
             createFirstGeneration(life);
             addCellLabels(life, gridPane);
         });
