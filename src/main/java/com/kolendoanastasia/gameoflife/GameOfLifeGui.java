@@ -8,6 +8,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
@@ -19,14 +20,14 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-public class GameOfLifeGui extends Application{
+public class GameOfLifeGui extends Application {
 
     public static void main(String[] args) {
         launch(args);
     }
 
     @Override
-    public void start(Stage primaryStage) throws IOException{
+    public void start(Stage primaryStage) throws IOException {
         primaryStage.setTitle("The Game Of Life");
         primaryStage.show();
 
@@ -82,7 +83,7 @@ public class GameOfLifeGui extends Application{
         AtomicInteger evolutionSpeed = new AtomicInteger(0);
         slider.valueProperty().addListener((observable, oldValue, newValue) -> evolutionSpeed.set(newValue.intValue()));
 
-        HBox hbox = new HBox(20,nextGenerationButton, slider);
+        HBox hbox = new HBox(20, nextGenerationButton, slider);
 
         Alert a = new Alert(Alert.AlertType.NONE);
 
@@ -116,7 +117,7 @@ public class GameOfLifeGui extends Application{
             fileChooser.getExtensionFilters().add(
                     new FileChooser.ExtensionFilter("Text Files", "*.txt"));
             File file = fileChooser.showSaveDialog(primaryStage);
-            if (file != null){
+            if (file != null) {
                 try {
                     FileWriter fileWriter = new FileWriter(file);
                     fileWriter.write(life.getNumberOfRows() + System.lineSeparator());
@@ -168,7 +169,7 @@ public class GameOfLifeGui extends Application{
                     a.setAlertType(Alert.AlertType.ERROR);
                     a.setContentText("IOException occurred");
                     a.show();
-                } catch (Exception e){
+                } catch (Exception e) {
                     a.setTitle("Error");
                     a.setAlertType(Alert.AlertType.ERROR);
                     a.setContentText("An error occurred");
@@ -207,6 +208,7 @@ public class GameOfLifeGui extends Application{
         primaryStage.show();
     }
 
+
     private void addCellLabels(Life life, GridPane gridPane) {
         for (int i = 0; i < life.getNumberOfColumns(); i++) {
             for (int j = 0; j < life.getNumberOfRows(); j++) {
@@ -217,6 +219,18 @@ public class GameOfLifeGui extends Application{
                 label.setMaxHeight(10);
                 String color = life.isAlive(j, i) ? "000000" : "FFFFFF";
                 label.setStyle("-fx-background-color: #" + color + ";");
+                int row = j;
+                int column = i;
+                label.setOnMouseClicked(e -> {
+                    if (e.getButton() == MouseButton.PRIMARY) {
+                        life.setAlive(row, column, true);
+                        label.setStyle("-fx-background-color: #000000;");
+                    } else if (e.getButton() == MouseButton.SECONDARY) {
+                        life.setAlive(row, column, false);
+                        label.setStyle("-fx-background-color: #FFFFFF;");
+                    }
+                });
+
                 gridPane.add(label, i, j);
             }
         }
